@@ -232,10 +232,12 @@ const Dashboard = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [filterService, setFilterService] = useState(null);
   const [filterStatus, setFilterStatus] = useState(null);
+  const [filterPayment, setFilterPayment] = useState(null);
   const [sortOrder, setSortOrder] = useState('asc');
   const [showLedger, setShowLedger] = useState(false);
+  const [activeTab, setActiveTab] = useState('workspace'); // 'workspace' | 'vault'
 
-  const activeFilterCount = (filterService ? 1 : 0) + (filterStatus ? 1 : 0);
+  const activeFilterCount = (filterService ? 1 : 0) + (filterStatus ? 1 : 0) + (filterPayment ? 1 : 0);
 
   const filteredClients = clients
     .filter(c =>
@@ -244,6 +246,11 @@ const Dashboard = () => {
     )
     .filter(c => !filterService || c.activeServices?.includes(filterService))
     .filter(c => !filterStatus || c.status === filterStatus)
+    .filter(c => {
+      if (filterPayment === 'Pending') return c.dues?.total > 0;
+      if (filterPayment === 'Paid') return c.dues?.total === 0;
+      return true;
+    })
     .sort((a, b) => sortOrder === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name));
 
   return (
@@ -354,9 +361,23 @@ const Dashboard = () => {
                   ))}
                 </div>
               </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Filter by Payment</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {['Pending', 'Paid'].map(pay => (
+                    <button
+                      key={pay}
+                      onClick={() => setFilterPayment(filterPayment === pay ? null : pay)}
+                      className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition-colors border ${filterPayment === pay ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
+                    >
+                      {pay === 'Pending' ? 'Has Dues' : 'Paid In Full'}
+                    </button>
+                  ))}
+                </div>
+              </div>
               {activeFilterCount > 0 && (
                 <button
-                  onClick={() => { setFilterService(null); setFilterStatus(null); }}
+                  onClick={() => { setFilterService(null); setFilterStatus(null); setFilterPayment(null); }}
                   className="self-end text-[10px] font-bold text-red-600 hover:underline"
                 >
                   Clear All Filters
@@ -373,7 +394,7 @@ const Dashboard = () => {
               return (
                 <div
                   key={client.id}
-                  onClick={() => setSelectedClient(client)}
+                  onClick={() => { setSelectedClient(client); setActiveTab('workspace'); setShowLedger(false); }}
                   className={`flex items-center justify-between px-6 py-4 cursor-pointer border-b border-slate-100 transition-colors ${
                     isSelected ? 'bg-slate-50 border-l-4 border-l-blue-600' : 'hover:bg-slate-50 border-l-4 border-l-transparent'
                   }`}
@@ -402,7 +423,7 @@ const Dashboard = () => {
         {selectedClient ? (
           <div className="h-full flex flex-col bg-white border-l border-slate-200">
             {/* Header */}
-            <div className="px-8 py-6 border-b border-slate-200">
+            <div className="px-8 pt-6 border-b border-slate-200">
               <div className="flex items-center gap-2 mb-6">
                 <DiamondIcon size={16} color="#475569" />
                 <span className="font-semibold text-slate-600 text-xs tracking-wide uppercase">Workspace</span>
@@ -462,13 +483,30 @@ const Dashboard = () => {
                   )}
                 </div>
               </div>
+
+              {/* Tabs */}
+              <div className="flex items-center gap-6 mt-6">
+                <button 
+                  onClick={() => setActiveTab('workspace')}
+                  className={`pb-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors ${activeTab === 'workspace' ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+                >
+                  Active Services
+                </button>
+                <button 
+                  onClick={() => setActiveTab('vault')}
+                  className={`pb-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors ${activeTab === 'vault' ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+                >
+                  Client Vault & KYC
+                </button>
+              </div>
             </div>
 
-            {/* Dynamic Service Modules */}
+            {/* Dynamic Content Area */}
             <div className="flex-1 overflow-y-auto p-8 bg-slate-50">
-              <div className="grid grid-cols-2 gap-6">
+              {activeTab === 'workspace' ? (
+                <div className="grid grid-cols-2 gap-6">
 
-                {/* ── TAX MODULE ── */}
+                  {/* ── TAX MODULE ── */}
                 {selectedClient.activeServices?.some(s => ['ITR', 'Audit'].includes(s)) && (
                   <div className="col-span-1 bg-white border border-slate-200 rounded-md p-6 flex flex-col gap-4">
                     <div className="flex items-center gap-3">
@@ -589,6 +627,229 @@ const Dashboard = () => {
                   </div>
                 )}
               </div>
+              ) : (
+                // ═══════════════════════════════════════════
+                //   CLIENT VAULT & KYC - COMPREHENSIVE VIEW
+                // ═══════════════════════════════════════════
+                <div className="flex flex-col gap-5 max-w-4xl pb-4">
+
+                  {/* ── SECTION 1: PERSONAL / DIRECTOR DETAILS ── */}
+                  <div className="bg-white border border-slate-200 rounded-md overflow-hidden">
+                    <div className="px-5 py-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                      <h3 className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Primary Director / Proprietor</h3>
+                      <button className="text-[10px] font-bold text-blue-600 hover:underline">Edit →</button>
+                    </div>
+                    <div className="p-5 grid grid-cols-3 gap-x-8 gap-y-5">
+                      {[
+                        { label: 'Full Name', value: 'Rahul Kumar Verma' },
+                        { label: 'Date of Birth', value: '14 March 1982' },
+                        { label: 'Sex', value: 'Male' },
+                        { label: "Father's Name", value: 'Suresh Kumar Verma' },
+                        { label: 'PAN Number', value: 'ABCDE1234F', mono: true },
+                        { label: 'Aadhaar Number', value: '5678 XXXX XXXX', mono: true },
+                        { label: 'Phone Number', value: '+91 98765 43210' },
+                        { label: 'Email Address', value: `contact@${selectedClient.name.toLowerCase().replace(/\s+/g, '')}.com` },
+                        { label: 'Service Start A/Y', value: '2022-23' },
+                      ].map(f => (
+                        <div key={f.label}>
+                          <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">{f.label}</p>
+                          <p className={`text-sm text-slate-900 font-semibold mt-0.5 ${f.mono ? 'font-mono' : ''}`}>{f.value}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* ── SECTION 2: ADDRESS DETAILS ── */}
+                  <div className="bg-white border border-slate-200 rounded-md overflow-hidden">
+                    <div className="px-5 py-3 bg-slate-50 border-b border-slate-200">
+                      <h3 className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Address Details</h3>
+                    </div>
+                    <div className="p-5 grid grid-cols-2 gap-x-8 gap-y-5">
+                      {[
+                        { label: 'Permanent / Residential Address', value: '142, Ram Nagar, Sector 12, New Delhi – 110044' },
+                        { label: 'Office / Business Address', value: '3rd Floor, Business Hub, Phase 1, Noida – 201301' },
+                      ].map(f => (
+                        <div key={f.label}>
+                          <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">{f.label}</p>
+                          <p className="text-sm text-slate-900 font-semibold mt-0.5 leading-relaxed">{f.value}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* ── SECTION 3: SERVICE-SPECIFIC DATA ── */}
+                  {/* ITR / Audit Specific */}
+                  {selectedClient.activeServices?.some(s => ['ITR', 'Audit'].includes(s)) && (
+                    <div className="bg-white border border-slate-200 rounded-md overflow-hidden">
+                      <div className="px-5 py-3 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-slate-900"></div>
+                        <h3 className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Tax & Audit — Required Data</h3>
+                        <span className="ml-auto text-[9px] px-2 py-0.5 rounded bg-slate-100 text-slate-500 font-bold border border-slate-200">{selectedClient.activeServices.filter(s => ['ITR', 'Audit'].includes(s)).join(' · ')}</span>
+                      </div>
+                      <div className="p-5 grid grid-cols-3 gap-x-8 gap-y-5">
+                        {[
+                          { label: 'ITR Form Type', value: 'ITR-6 (Company)' },
+                          { label: 'Business Nature', value: 'Manufacturing / Trading' },
+                          { label: 'Audit Applicable', value: 'Yes (Tax Audit u/s 44AB)' },
+                          { label: 'Form 26AS Status', value: 'Reconciled ✓' },
+                          { label: 'AIS / TIS Status', value: 'Verified ✓' },
+                          { label: 'Total Turnover (26-27)', value: '₹2.4 Crore' },
+                          { label: 'Advance Tax Paid', value: '₹1,20,000' },
+                          { label: 'TDS (as per 26AS)', value: '₹34,500' },
+                          { label: '80C/80D Investments', value: '₹1,50,000' },
+                        ].map(f => (
+                          <div key={f.label}>
+                            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">{f.label}</p>
+                            <p className="text-sm text-slate-900 font-semibold mt-0.5">{f.value}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* GST / PF / ESI Specific */}
+                  {selectedClient.activeServices?.some(s => ['GST', 'PF', 'ESI'].includes(s)) && (
+                    <div className="bg-white border border-slate-200 rounded-md overflow-hidden">
+                      <div className="px-5 py-3 bg-blue-50 border-b border-blue-100 flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-blue-600"></div>
+                        <h3 className="text-[10px] font-bold text-blue-700 uppercase tracking-widest">Compliance — Required Data</h3>
+                        <span className="ml-auto text-[9px] px-2 py-0.5 rounded bg-blue-100 text-blue-700 font-bold border border-blue-200">{selectedClient.activeServices.filter(s => ['GST', 'PF', 'ESI'].includes(s)).join(' · ')}</span>
+                      </div>
+                      <div className="p-5 grid grid-cols-3 gap-x-8 gap-y-5">
+                        {[
+                          { label: 'GSTIN', value: '07ABCDE1234F1Z5', mono: true },
+                          { label: 'GST Registration Type', value: 'Regular' },
+                          { label: 'GST Start Date', value: '01 July 2017' },
+                          { label: 'Business Place of Supply', value: 'Delhi (07)' },
+                          { label: 'PF Registration No.', value: 'MH/PF/1234567', mono: true },
+                          { label: 'ESI Registration No.', value: '31-00-123456-000-0001', mono: true },
+                          { label: 'Total Employees (PF/ESI)', value: '42 Employees' },
+                          { label: 'Bank Account (GST Linked)', value: 'SBI A/c ...4321' },
+                        ].map(f => (
+                          <div key={f.label}>
+                            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">{f.label}</p>
+                            <p className={`text-sm text-slate-900 font-semibold mt-0.5 ${f.mono ? 'font-mono text-xs' : ''}`}>{f.value}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Business Loan / CMA / Project Report Specific */}
+                  {selectedClient.activeServices?.some(s => ['Business Loan', 'CMA Data', 'Project Report'].includes(s)) && (
+                    <div className="bg-white border border-slate-200 rounded-md overflow-hidden">
+                      <div className="px-5 py-3 bg-purple-50 border-b border-purple-100 flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-purple-600"></div>
+                        <h3 className="text-[10px] font-bold text-purple-700 uppercase tracking-widest">Corporate Finance — Required Data</h3>
+                        <span className="ml-auto text-[9px] px-2 py-0.5 rounded bg-purple-100 text-purple-700 font-bold border border-purple-200">{selectedClient.activeServices.filter(s => ['Business Loan', 'CMA Data', 'Project Report'].includes(s)).join(' · ')}</span>
+                      </div>
+                      <div className="p-5 grid grid-cols-3 gap-x-8 gap-y-5">
+                        {[
+                          { label: 'Loan Amount Required', value: '₹50,00,000' },
+                          { label: 'Loan Type', value: 'Working Capital + Term Loan' },
+                          { label: 'Bank / Lender', value: 'State Bank of India' },
+                          { label: 'Net Profit (Last 3 Yr Avg)', value: '₹8.2 Lakh / Year' },
+                          { label: 'Existing Liabilities', value: '₹12,00,000' },
+                          { label: 'Collateral / Security', value: 'Commercial Property' },
+                          { label: 'Bank Statement Period', value: 'Apr 2023 – Mar 2024' },
+                          { label: 'Udyam/MSME Reg. No.', value: 'UDYAM-DL-01-0012345', mono: true },
+                        ].map(f => (
+                          <div key={f.label}>
+                            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">{f.label}</p>
+                            <p className={`text-sm text-slate-900 font-semibold mt-0.5 ${f.mono ? 'font-mono text-xs' : ''}`}>{f.value}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Food License / Business License / PAN Specific */}
+                  {selectedClient.activeServices?.some(s => ['PAN', 'Food License', 'Business License'].includes(s)) && (
+                    <div className="bg-white border border-slate-200 rounded-md overflow-hidden">
+                      <div className="px-5 py-3 bg-amber-50 border-b border-amber-100 flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                        <h3 className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">Registrations — Required Data</h3>
+                        <span className="ml-auto text-[9px] px-2 py-0.5 rounded bg-amber-100 text-amber-700 font-bold border border-amber-200">{selectedClient.activeServices.filter(s => ['PAN', 'Food License', 'Business License'].includes(s)).join(' · ')}</span>
+                      </div>
+                      <div className="p-5 grid grid-cols-3 gap-x-8 gap-y-5">
+                        {[
+                          ...(selectedClient.activeServices.includes('PAN') ? [
+                            { label: 'Applicant Type', value: 'Company' },
+                            { label: 'PAN Application No.', value: 'N-881234567', mono: true },
+                            { label: 'PAN Issued Date', value: '22 Jan 2010' },
+                          ] : []),
+                          ...(selectedClient.activeServices.includes('Food License') ? [
+                            { label: 'FSSAI License No.', value: '11224057000123', mono: true },
+                            { label: 'License Type', value: 'State License' },
+                            { label: 'Food Category', value: 'Packaged Food / Bakery' },
+                            { label: 'License Validity', value: 'Till 15 Aug 2028' },
+                            { label: 'FBO Name', value: 'Cobalt Foods Pvt. Ltd.' },
+                          ] : []),
+                          ...(selectedClient.activeServices.includes('Business License') ? [
+                            { label: 'Trade License No.', value: 'MCGM/TL/2021/45678', mono: true },
+                            { label: 'Business Category', value: 'Manufacturing' },
+                            { label: 'Shop Est. Reg. No.', value: 'MH/12/2021/88877', mono: true },
+                          ] : []),
+                        ].map(f => (
+                          <div key={f.label}>
+                            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">{f.label}</p>
+                            <p className={`text-sm text-slate-900 font-semibold mt-0.5 ${f.mono ? 'font-mono text-xs' : ''}`}>{f.value}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ── SECTION 4: DOCUMENT VAULT ── */}
+                  <div className="bg-white border border-slate-200 rounded-md overflow-hidden">
+                    <div className="px-5 py-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                      <h3 className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Document Vault</h3>
+                      <button className="text-[10px] font-bold text-white bg-slate-900 hover:bg-slate-800 px-3 py-1.5 rounded-md transition-colors">+ Upload Document</button>
+                    </div>
+                    <div className="p-5 grid grid-cols-2 gap-3">
+                      {[
+                        { name: 'PAN Card (Director)', type: 'KYC', date: '10 Jan 2024', status: 'Verified' },
+                        { name: 'Aadhaar Card (Director)', type: 'KYC', date: '10 Jan 2024', status: 'Verified' },
+                        { name: 'Incorporation Certificate', type: 'Business', date: '12 Feb 2024', status: 'Verified' },
+                        { name: 'Balance Sheet 25-26', type: 'Financial', date: '31 Mar 2024', status: 'Uploaded' },
+                        { name: 'P&L Statement 25-26', type: 'Financial', date: '31 Mar 2024', status: 'Uploaded' },
+                        { name: 'Bank Statement (6M)', type: 'Financial', date: '15 Aug 2024', status: 'Uploaded' },
+                        { name: 'GST Certificate', type: 'Compliance', date: '01 Jul 2017', status: 'Verified' },
+                        { name: 'Previous ITR Copy (24-25)', type: 'Tax', date: '30 Jul 2024', status: 'Uploaded' },
+                      ].map((doc, idx) => {
+                        const typeColors = {
+                          KYC: 'bg-blue-50 text-blue-600 border-blue-100',
+                          Business: 'bg-purple-50 text-purple-600 border-purple-100',
+                          Financial: 'bg-emerald-50 text-emerald-600 border-emerald-100',
+                          Compliance: 'bg-amber-50 text-amber-600 border-amber-100',
+                          Tax: 'bg-slate-50 text-slate-600 border-slate-200',
+                        };
+                        return (
+                          <div key={idx} className="flex items-center justify-between p-3 border border-slate-200 rounded-md hover:bg-slate-50 transition-colors cursor-pointer group">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded bg-white border border-slate-200 flex items-center justify-center text-slate-400 flex-shrink-0">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="text-xs font-bold text-slate-900">{doc.name}</span>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${typeColors[doc.type]}`}>{doc.type}</span>
+                                  <span className="text-[9px] text-slate-400">{doc.date}</span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button className="text-slate-400 hover:text-slate-900 p-1" title="Download">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Footer Actions */}
