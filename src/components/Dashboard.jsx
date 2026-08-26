@@ -6,125 +6,164 @@ const clients = [
     name: 'Acme Global Industries',
     company: 'Acme Corp / Energy Sector',
     status: 'Active Engagement',
-    statusColor: '#10B981',
-    badge: 'ACTIVE FILE',
-    badgeColor: '#DBEAFE',
-    badgeTextColor: '#1D4ED8',
     activeServices: ['ITR', 'GST', 'Audit'],
     time: 'Just now',
+    dues: {
+      total: 11000,
+      items: [
+        { name: 'ITR Filing 26-27', invoice: 'INV-2401', amount: 6500 },
+        { name: 'GST Annual Return', invoice: 'INV-2405', amount: 4500 }
+      ]
+    }
   },
   {
     id: 2,
     name: 'Vanguard Venture Capital',
     company: 'Vanguard Group / Financials',
     status: 'Onboarding',
-    statusColor: '#3B82F6',
-    badge: null,
     activeServices: ['Business Loan', 'CMA Data'],
     time: '42 mins ago',
+    dues: {
+      total: 25000,
+      items: [
+        { name: 'Project Report Prep', invoice: 'INV-2412', amount: 25000 }
+      ]
+    }
   },
   {
     id: 3,
     name: 'Nova Health Systems',
     company: 'Nova Health / Biotech',
     status: 'Under Review',
-    statusColor: '#F59E0B',
-    badge: null,
     activeServices: ['Food License', 'GST'],
     time: '2 hours ago',
+    dues: {
+      total: 0,
+      items: []
+    }
   },
   {
     id: 4,
     name: 'Apex Media Group',
     company: 'Apex Ent. / Entertainment',
     status: 'Active Engagement',
-    statusColor: '#10B981',
-    badge: null,
     activeServices: ['ITR'],
     time: 'Yesterday',
+    dues: {
+      total: 3500,
+      items: [
+        { name: 'ITR Filing 25-26 (Late)', invoice: 'INV-2390', amount: 3500 }
+      ]
+    }
   },
   {
     id: 5,
     name: 'Beacon Logistics LLC',
     company: 'Beacon Group / Supply Chain',
     status: 'Active Engagement',
-    statusColor: '#10B981',
-    badge: null,
     activeServices: ['GST', 'PF', 'ESI'],
     time: '3 days ago',
+    dues: {
+      total: 0,
+      items: []
+    }
   },
   {
     id: 6,
     name: 'Sovereign Cybersec',
     company: 'Sovereign Inc / Tech',
     status: 'Under Review',
-    statusColor: '#F59E0B',
-    badge: null,
     activeServices: ['Project Report', 'ITR'],
     time: '1 week ago',
+    dues: {
+      total: 15000,
+      items: [
+        { name: 'CMA Data Preparation', invoice: 'INV-2420', amount: 15000 }
+      ]
+    }
   },
   {
     id: 7,
     name: 'Quantum Data Dynamics',
     company: 'Quantum / Big Data',
     status: 'Active Engagement',
-    statusColor: '#10B981',
-    badge: null,
     activeServices: ['Audit', 'GST'],
     time: '2 weeks ago',
+    dues: {
+      total: 45000,
+      items: [
+        { name: 'Statutory Audit 25-26', invoice: 'INV-2409', amount: 40000 },
+        { name: 'GST Audit', invoice: 'INV-2410', amount: 5000 }
+      ]
+    }
   },
   {
     id: 8,
     name: 'Horizon Renewables',
     company: 'Horizon Energy / Clean Tech',
     status: 'Onboarding',
-    statusColor: '#3B82F6',
-    badge: 'PRIORITY',
-    badgeColor: '#FEF08A',
-    badgeTextColor: '#854D0E',
     activeServices: ['Business Loan', 'Project Report'],
     time: '3 weeks ago',
+    dues: {
+      total: 0,
+      items: []
+    }
   },
   {
     id: 9,
     name: 'Meridian Trading Group',
     company: 'Meridian / Finance',
     status: 'Under Review',
-    statusColor: '#F59E0B',
-    badge: null,
     activeServices: ['PAN', 'ITR'],
     time: '1 month ago',
+    dues: {
+      total: 1500,
+      items: [
+        { name: 'PAN Card Application', invoice: 'INV-2433', amount: 1500 }
+      ]
+    }
   },
   {
     id: 10,
     name: 'Silverline Aerospace',
     company: 'Silverline / Aviation',
     status: 'Active Engagement',
-    statusColor: '#10B981',
-    badge: null,
     activeServices: ['GST', 'Audit'],
     time: '1 month ago',
+    dues: {
+      total: 0,
+      items: []
+    }
   },
   {
     id: 11,
     name: 'Cobalt Pharmaceuticals',
     company: 'Cobalt Pharma / Healthcare',
     status: 'Active Engagement',
-    statusColor: '#10B981',
-    badge: null,
     activeServices: ['Food License', 'Business License'],
     time: '2 months ago',
+    dues: {
+      total: 12000,
+      items: [
+        { name: 'Food License Renewal', invoice: 'INV-2455', amount: 8500 },
+        { name: 'Trade License', invoice: 'INV-2456', amount: 3500 }
+      ]
+    }
   },
   {
     id: 12,
     name: 'Nebula Cloud Solutions',
     company: 'Nebula Inc / SaaS',
     status: 'Under Review',
-    statusColor: '#F59E0B',
-    badge: null,
     activeServices: ['ITR', 'PF'],
     time: '3 months ago',
-  },
+    dues: {
+      total: 2500,
+      items: [
+        { name: 'PF Registration', invoice: 'INV-2460', amount: 2500 }
+      ]
+    }
+  }
 ];
 
 const ClockIcon = () => (
@@ -194,6 +233,7 @@ const Dashboard = () => {
   const [filterService, setFilterService] = useState(null);
   const [filterStatus, setFilterStatus] = useState(null);
   const [sortOrder, setSortOrder] = useState('asc');
+  const [showLedger, setShowLedger] = useState(false);
 
   const activeFilterCount = (filterService ? 1 : 0) + (filterStatus ? 1 : 0);
 
@@ -367,9 +407,60 @@ const Dashboard = () => {
                 <DiamondIcon size={16} color="#475569" />
                 <span className="font-semibold text-slate-600 text-xs tracking-wide uppercase">Workspace</span>
               </div>
-              <div className="flex flex-col gap-1">
-                <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">{selectedClient.name}</h2>
-                <span className="text-sm text-slate-500">{selectedClient.company}</span>
+              <div className="flex items-start justify-between">
+                <div className="flex flex-col gap-1">
+                  <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">{selectedClient.name}</h2>
+                  <span className="text-sm text-slate-500">{selectedClient.company}</span>
+                </div>
+                
+                {/* Total Dues Button & Popover */}
+                <div className="relative">
+                  {selectedClient.dues.total > 0 ? (
+                    <button 
+                      onClick={() => setShowLedger(!showLedger)} 
+                      className="flex items-center gap-3 bg-red-50 hover:bg-red-100 text-red-700 px-4 py-2 rounded-md border border-red-200 transition-colors shadow-sm"
+                    >
+                      <div className="flex flex-col items-end text-left">
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-red-500">Pending Dues</span>
+                        <span className="text-sm font-extrabold">₹{selectedClient.dues.total.toLocaleString('en-IN')}</span>
+                      </div>
+                      <svg className={`w-4 h-4 transition-transform ${showLedger ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-2 rounded-md border border-emerald-200 cursor-default">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                      <span className="text-xs font-bold uppercase tracking-widest">Paid In Full</span>
+                    </div>
+                  )}
+
+                  {/* Vercel-style Popover */}
+                  {showLedger && selectedClient.dues.total > 0 && (
+                    <div className="absolute right-0 top-full mt-2 w-80 bg-white border border-slate-200 rounded-md shadow-[0_8px_30px_rgb(0,0,0,0.12)] z-50 flex flex-col overflow-hidden">
+                      <div className="bg-slate-50 px-4 py-3 border-b border-slate-200">
+                        <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wide">Outstanding Ledger</h4>
+                      </div>
+                      <div className="flex flex-col p-2">
+                        {/* Breakdown Items dynamically mapped */}
+                        {selectedClient.dues.items.map((item, i) => (
+                          <div key={i} className="flex justify-between items-center p-2 hover:bg-slate-50 rounded-md transition-colors">
+                            <div className="flex flex-col">
+                              <span className="text-sm font-bold text-slate-900">{item.name}</span>
+                              <span className="text-[10px] text-slate-500">Invoice #{item.invoice}</span>
+                            </div>
+                            <span className="text-sm font-semibold text-slate-900">₹{item.amount.toLocaleString('en-IN')}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="bg-slate-50 px-4 py-3 border-t border-slate-200 flex justify-between items-center">
+                        <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Total</span>
+                        <span className="text-base font-extrabold text-red-600">₹{selectedClient.dues.total.toLocaleString('en-IN')}</span>
+                      </div>
+                      <button className="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-3 transition-colors">
+                        Record Payment
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -402,7 +493,7 @@ const Dashboard = () => {
                               {isActive ? <span className="text-blue-600">→</span> : <span className="w-3"></span>}
                               <span>{ay.year}</span>
                             </div>
-                            <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${ay.filed === 'Pending' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>{ay.filed}</span>
+                            <span className={`text-[10px] w-[50px] text-center py-0.5 rounded font-bold ${ay.filed === 'Pending' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>{ay.filed}</span>
                           </div>
                         );
                       })}
