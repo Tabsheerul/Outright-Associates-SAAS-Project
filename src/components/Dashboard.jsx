@@ -207,18 +207,23 @@ const Dashboard = () => {
     .sort((a, b) => sortOrder === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name));
 
   return (
-    <div className="h-screen w-full flex overflow-hidden bg-white text-slate-900 font-sans">
+    <div 
+      className="h-screen w-full flex overflow-hidden p-3 gap-3 text-slate-900 font-sans"
+      style={{
+        backgroundImage: 'radial-gradient(circle at 15% 85%, rgba(199, 212, 253, 0.6) 0%, rgba(255, 255, 255, 1) 100%)'
+      }}
+    >
       {/* COLUMN 1: Global Sidebar */}
-      <aside className="w-16 border-r border-slate-200 flex flex-col items-center py-5 gap-6 bg-slate-50 flex-shrink-0 z-10">
+      <aside className="w-16 border border-slate-200 rounded-xl flex flex-col items-center py-5 gap-6 bg-white flex-shrink-0 z-10 shadow-sm">
         <div className="w-10 h-10 rounded-md bg-[#0F172A] flex items-center justify-center text-white mb-2">
           <DiamondIcon color="white" size={20} />
         </div>
-        <button className="text-slate-400 hover:text-slate-900 hover:bg-slate-200 p-2.5 rounded-md transition-colors"><HomeIcon /></button>
-        <button className="text-[#0F172A] bg-slate-200 p-2.5 rounded-md transition-colors"><UsersIcon /></button>
-        <button className="text-slate-400 hover:text-slate-900 hover:bg-slate-200 p-2.5 rounded-md transition-colors"><FileTextIcon /></button>
+        <button className="text-slate-400 hover:text-slate-900 hover:bg-slate-50 p-2.5 rounded-md transition-colors"><HomeIcon /></button>
+        <button className="text-[#0F172A] bg-slate-100 p-2.5 rounded-md transition-colors"><UsersIcon /></button>
+        <button className="text-slate-400 hover:text-slate-900 hover:bg-slate-50 p-2.5 rounded-md transition-colors"><FileTextIcon /></button>
         
         <div className="mt-auto flex flex-col gap-4 items-center">
-          <button className="text-slate-400 hover:text-slate-900 hover:bg-slate-200 p-2.5 rounded-md transition-colors"><SettingsIcon /></button>
+          <button className="text-slate-400 hover:text-slate-900 hover:bg-slate-50 p-2.5 rounded-md transition-colors"><SettingsIcon /></button>
           <div className="w-8 h-8 rounded-md bg-slate-900 flex items-center justify-center text-white text-xs font-bold cursor-pointer">
             OA
           </div>
@@ -226,8 +231,8 @@ const Dashboard = () => {
       </aside>
 
       {/* COLUMN 2: Assessee List */}
-      <div className="w-[420px] border-r border-slate-200 flex flex-col bg-white flex-shrink-0 z-10">
-        <div className="p-6 pb-4 border-b border-slate-200 flex-shrink-0">
+      <div className="w-[420px] border border-slate-200 rounded-xl flex flex-col bg-white flex-shrink-0 z-10 shadow-sm overflow-hidden">
+        <div className="p-6 pb-4 border-b border-slate-100 flex-shrink-0">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-xl font-bold text-slate-900 tracking-tight">Assessees</h1>
@@ -353,7 +358,7 @@ const Dashboard = () => {
       </div>
 
       {/* COLUMN 3: Main Workspace */}
-      <div className="flex-1 flex flex-col bg-slate-50">
+      <div className="flex-1 flex flex-col bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
         {selectedClient ? (
           <div className="h-full flex flex-col bg-white border-l border-slate-200">
             {/* Header */}
